@@ -20,23 +20,7 @@ import struct
 import time
 import pygame
 import random
-
-def unpack(bin_file, data_type, length_arg=0):
-    #integer or unsigned integer
-    if data_type == "i" or data_type == "I":
-        return int(struct.unpack(data_type, bin_file.read(4))[0])
-    #short or unsigned short
-    elif data_type == "h" or data_type == "H":
-        return int(struct.unpack(data_type, bin_file.read(2))[0])
-    #string
-    elif data_type == "s":
-        return struct.unpack(str(length_arg) + data_type, bin_file.read(length_arg))[0]
-    #char
-    elif data_type == "c":
-        return struct.unpack(data_type, bin_file.read(1))[0]
-    #byte or unsigned byte
-    elif data_type == "b" or data_type == "B":
-        return int(struct.unpack(data_type, bin_file.read(1))[0])
+from file_utils import unpack
 
 def draw_prefab(prefab):
     colors = {}
@@ -71,12 +55,9 @@ def draw_prefab(prefab):
     pygame.image.save(image, "output.png")
 
 
-def main():
-    file_name = input("TTS FILE?: ")
+def read_tts_file(file_name):
     bin_file = open(file_name, "rb")
-
     prefab = {}
-
     prefab["header"] = unpack(bin_file, "s", 4)
     prefab["version"] = unpack(bin_file, "I")
     prefab["size_x"] = unpack(bin_file, "H")

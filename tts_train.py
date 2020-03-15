@@ -12,12 +12,13 @@ import os
 import PIL
 from tensorflow.keras import layers
 import time
-from training_data import get_fake_training_data
- 
+from read_training_data import read_training_data
 from IPython import display
  
 # (train_images, train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
-(train_images, train_labels), (_, _) = get_fake_training_data()
+(train_images, train_labels) = read_training_data()
+
+print(train_images.shape)
 
 train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
 train_images = (train_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
@@ -167,7 +168,8 @@ def generate_and_save_images(model, epoch, test_input):
             plt.axis('off')
  
     plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
-    plt.show()
+    plt.close('all')
+    #plt.show()
  
 train(train_dataset, EPOCHS)
  
