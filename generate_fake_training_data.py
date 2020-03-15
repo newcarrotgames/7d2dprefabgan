@@ -8,7 +8,7 @@ grid_size = 4
 cell_size = 7
 cell_offset = (cell_size - 2) / 2
 print("generating fake training data - dim: {}x{}, grid: {}x{}, cell dim: {}x{}, wall offsets: {}x{}".format(w, h, grid_size, grid_size, cell_size, cell_size, cell_offset, cell_offset))
-numer_of_images_to_generate = 100
+numer_of_images_to_generate = 10000
 for image_index in range(numer_of_images_to_generate):
     data = np.zeros((h, w, 3), dtype=np.uint8)
     for grid_x in range(grid_size):

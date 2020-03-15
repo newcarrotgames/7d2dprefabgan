@@ -62,8 +62,7 @@ plt.imshow(generated_image[0, :, :, 0], cmap='gray')
  
 def make_discriminator_model():
         model = tf.keras.Sequential()
-        model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
-                                                                         input_shape=[28, 28, 1]))
+        model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', input_shape=[28, 28, 1]))
         model.add(layers.LeakyReLU())
         model.add(layers.Dropout(0.3))
  
@@ -103,7 +102,7 @@ checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                                                  generator=generator,
                                                                  discriminator=discriminator)
  
-EPOCHS = 50
+EPOCHS = 1000
 noise_dim = 100
 num_examples_to_generate = 16
  
@@ -141,9 +140,7 @@ def train(dataset, epochs):
  
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
-        generate_and_save_images(generator,
-                                                         epoch + 1,
-                                                         seed)
+        generate_and_save_images(generator, epoch + 1, seed)
  
         # Save the model every 15 epochs
         if (epoch + 1) % 15 == 0:
@@ -175,7 +172,6 @@ train(train_dataset, EPOCHS)
  
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
  
- 
 # Display a single image using the epoch number
 def display_image(epoch_no):
     return PIL.Image.open('image_at_epoch_{:04d}.png'.format(epoch_no))
@@ -183,23 +179,23 @@ def display_image(epoch_no):
 display_image(EPOCHS)
  
  
-anim_file = 'dcgan.gif'
+# anim_file = 'dcgan.gif'
  
-with imageio.get_writer(anim_file, mode='I') as writer:
-    filenames = glob.glob('image*.png')
-    filenames = sorted(filenames)
-    last = -1
-    for i,filename in enumerate(filenames):
-        frame = 2*(i**0.5)
-        if round(frame) > round(last):
-            last = frame
-        else:
-            continue
-        image = imageio.imread(filename)
-        writer.append_data(image)
-    image = imageio.imread(filename)
-    writer.append_data(image)
+# with imageio.get_writer(anim_file, mode='I') as writer:
+#     filenames = glob.glob('image*.png')
+#     filenames = sorted(filenames)
+#     last = -1
+#     for i,filename in enumerate(filenames):
+#         frame = 2*(i**0.5)
+#         if round(frame) > round(last):
+#             last = frame
+#         else:
+#             continue
+#         image = imageio.imread(filename)
+#         writer.append_data(image)
+#     image = imageio.imread(filename)
+#     writer.append_data(image)
  
-import IPython
-if IPython.version_info > (6,2,0,''):
-    display.Image(filename=anim_file)
+# import IPython
+# if IPython.version_info > (6,2,0,''):
+#     display.Image(filename=anim_file)
