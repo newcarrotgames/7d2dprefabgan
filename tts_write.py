@@ -46,15 +46,9 @@ def random_prefab():
 
     return prefab
 
-def encode():
-    # make a random prefab for testing output
-    prefab = random_prefab()
-
-    # change the output file name here
-    file_name = "test.tts"
-
+def encode(prefab, filename):
     # open the above binary file for writing
-    bin_file = open(file_name, "wb")
+    bin_file = open(filename, "wb")
 
     # write header and supported game version
     pack(bin_file, "s", "tts ")
