@@ -12,7 +12,7 @@ from read_training_data import read_training_data
 from IPython import display
 from pprint import pprint
 
-
+# todo: move these two functions for includes
 def make_generator_model():
     model = tf.keras.Sequential()
     model.add(layers.Dense(7*7*256, use_bias=False, input_shape=(100,)))
