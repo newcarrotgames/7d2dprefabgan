@@ -21,6 +21,7 @@ import time
 import pygame
 import random
 from file_utils import unpack
+import ntpath
 
 def draw_prefab(prefab):
     colors = {}
@@ -52,17 +53,22 @@ def draw_prefab(prefab):
         z += 1
 
     print("Block ids and colors: " + str(colors))
-    pygame.image.save(image, "output.png")
+    pygame.image.save(image, "output/output_{}.png".format(prefab["name"]))
 
 
 def read_tts_file(file_name):
     bin_file = open(file_name, "rb")
     prefab = {}
-    prefab["header"] = unpack(bin_file, "s", 4)
-    prefab["version"] = unpack(bin_file, "I")
-    prefab["size_x"] = unpack(bin_file, "H")
-    prefab["size_y"] = unpack(bin_file, "H")
-    prefab["size_z"] = unpack(bin_file, "H")
+
+    # get properties not from tts file
+    prefab["name"] = ntpath.basename(file_name)
+
+    # get tts header properties from file (header is first 14 bytes of file)
+    prefab["header"] = unpack(bin_file, "s", 4) # 4 byte header is always the string: "tts "
+    prefab["version"] = unpack(bin_file, "I")   # next 4 bytes are version, but only the first byte matters
+    prefab["size_x"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
+    prefab["size_y"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
+    prefab["size_z"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
 
     print("Prefab version: " + str(prefab["version"]))
     print("Dimensions: " + str(prefab["size_x"]) + "x" + str(prefab["size_y"]) + "x" + str(prefab["size_z"]))
@@ -84,4 +90,6 @@ def read_tts_file(file_name):
 
     draw_prefab(prefab)
 
-main()
+
+if __name__ == '__main__':
+    read_tts_file("prefabs/test2/test2.tts")

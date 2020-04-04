@@ -62,7 +62,11 @@ class Voxels:
                 prefab["layers"][layer_index].append([])
                 for block_index in range(prefab["size_x"]):
                     prefab["layers"][layer_index][row_index].append(None)
-                    prefab["layers"][layer_index][row_index][block_index] = self.get_value_at(layer_index, row_index, block_index)
+                    #prefab["layers"][layer_index][row_index][block_index] = self.get_value_at(layer_index, row_index, block_index)
+                    val = self.get_value_at(layer_index, row_index, block_index)
+                    if val > 0:
+                        val = 1635844352
+                    prefab["layers"][layer_index][row_index][block_index] = val
         encode(prefab, filename)
 
     def from_training_image(self, filename):

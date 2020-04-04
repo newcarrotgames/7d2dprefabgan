@@ -23,21 +23,26 @@ def normalize_dataset(dataset):
 def print_dataset_shape(dataset):
     print("shape: {}\n".format(dataset.shape))
 
-# clear terminal
-print(chr(27) + "[2J")
+def main():
+    # clear terminal
+    print(chr(27) + "[2J")
 
-# load minst data and print shape
-print("loading minst dataset")
-(mnist_training_dataset, mnist_train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
-print_dataset_shape(mnist_training_dataset)
+    # load minst data and print shape
+    print("loading minst dataset")
+    (mnist_training_dataset, mnist_train_labels), (_, _) = tf.keras.datasets.mnist.load_data()
+    print_dataset_shape(mnist_training_dataset)
 
-# load our "fake" data and print shape
-print("loading my local dataset")
-(my_training_dataset, my_train_labels) = read_training_data()
-print_dataset_shape(my_training_dataset)
+    # load our "fake" data and print shape
+    print("loading my local dataset")
+    (my_training_dataset, my_train_labels) = read_training_data()
+    print_dataset_shape(my_training_dataset)
 
-# attempt to normalize minst data set
-minst_normalized_dataset = normalize_dataset(mnist_training_dataset)
+    # attempt to normalize minst data set
+    minst_normalized_dataset = normalize_dataset(mnist_training_dataset)
 
-# attempt to normalize my data set
-my_normalized_dataset = normalize_dataset(my_training_dataset)
+    # attempt to normalize my data set
+    my_normalized_dataset = normalize_dataset(my_training_dataset)
+
+
+if __name__ == '__main__':
+    main()

@@ -15,7 +15,7 @@ from pathlib import Path
 #
 # 42 0 0 0
 #
-# I _think_ the first byte in this sequence is the number of block id to block names in the file.
+# I _think_ the first byte in this sequence is the number of unique block types in the file.
 #
 # 2 0 0 0
 #

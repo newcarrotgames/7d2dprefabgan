@@ -1,6 +1,6 @@
 """
 7 Days to Die TTS encoder
-Copyright (C) 2020 David Harris <newcarrotgames@gmail.com>
+Copyright (C) 2020 New Carrot Games <newcarrotgames@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -83,4 +83,5 @@ def main():
     i = 128
     bin_file.write(struct.pack(">i", i))
 
-main()
+if __name__ == '__main__':
+    main()

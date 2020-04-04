@@ -32,4 +32,6 @@ def main():
                 printHeaderInfo(prefab)
     print("total prefabs: " + str(totalPrefabs))
 
-main()
+
+if __name__ == '__main__':
+    main()

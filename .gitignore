@@ -1,7 +1,10 @@
+training_checkpoints/
+__pycache__/
+prefabs/
+output/
+testdata/
 *.png
 *.gif
 *.txt
-training_checkpoints/
-__pycache__/
-config.ini
-prefabs/
+*.csv
+*.ini
