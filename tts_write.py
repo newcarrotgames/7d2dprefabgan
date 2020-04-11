@@ -20,6 +20,7 @@ import struct
 import time
 import pygame
 import random
+import math
 from file_utils import pack
 from tts_utils import draw_prefab
 
@@ -51,7 +52,8 @@ def encode(prefab, filename):
     bin_file = open(filename, "wb")
 
     # write header and supported game version
-    pack(bin_file, "s", "tts ")
+    pack(bin_file, "s", "tts")
+    pack(bin_file, "b", 0)
     pack(bin_file, "i", prefab["version"])
 
     # write prefab dimensions
@@ -63,14 +65,35 @@ def encode(prefab, filename):
     print("Prefab version: " + str(prefab["version"]))
     print("Dimensions: " + str(prefab["size_x"]) + "x" + str(prefab["size_y"]) + "x" + str(prefab["size_z"]))
 
-    # write prefab voxel data
+    # write prefab voxel data and build density byte array
+    density_data = []
     for layer_index in range(prefab["size_z"]):
         for row_index in range(prefab["size_y"]):
             for block_index in range(prefab["size_x"]):
-                pack(bin_file, "i", prefab["layers"][layer_index][row_index][block_index])
+                block_value = prefab["layers"][layer_index][row_index][block_index]
+                pack(bin_file, "i", block_value)
+                density_data.append(127)
 
-    # render image of random prefab
-    draw_prefab(prefab)
+    # write density (always 127)
+    print("density length: " + str(len(density_data)))
+    for x in density_data:
+        pack(bin_file, "b", x)
+
+    # write damage (all zeros)
+    for x in density_data:
+        pack(bin_file, "h", 0)
+
+    # write textures
+    tex_num = math.ceil(len(density_data) / 8.0)
+    pack(bin_file, "i", tex_num)
+    for x in range(tex_num):
+        pack(bin_file, "b", 0)
+
+    # write tile entities (two bytes of nothing)
+    pack(bin_file, "h", 0)
+
+    # write EOF?
+    bin_file.close()
 
     # remaining files?
     # nim
@@ -80,8 +103,8 @@ def encode(prefab, filename):
 
 def main():
     bin_file = open("test.dat", "wb")
-    i = 128
-    bin_file.write(struct.pack(">i", i))
+    pack(bin_file, "h", 0)
+    pack(bin_file, "h", 0)
 
 if __name__ == '__main__':
     main()

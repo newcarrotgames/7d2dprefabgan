@@ -9,7 +9,7 @@ def unpack(bin_file, data_type, length_arg=0):
         return int(struct.unpack(data_type, bin_file.read(2))[0])
     #string
     elif data_type == "s":
-        return struct.unpack(str(length_arg) + data_type, bin_file.read(length_arg))[0]
+        return struct.unpack(str(length_arg) + data_type, bin_file.read(length_arg))[0].decode("utf-8")
     #char
     elif data_type == "c":
         return struct.unpack(data_type, bin_file.read(1))[0]
@@ -21,17 +21,16 @@ def pack(bin_file, data_type, data):
     data_type = data_type.lower()
     # integer or unsigned integer
     if data_type == "i":
-        bin_file.write(struct.pack(">i", data))
+        bin_file.write(struct.pack("<i", data))
     # short or unsigned short
     elif data_type == "h":
-        bin_file.write(struct.pack(">h", data))
+        bin_file.write(struct.pack("<h", data))
     # string
     elif data_type == "s":
-        data = bytes(data, 'utf-8')
-        bin_file.write(struct.pack("I%ds" % (len(data),), len(data), data))
+        bin_file.write(data.encode('ascii'))
     # char
     elif data_type == "c":
-        bin_file.write(struct.pack(">c", data))
+        bin_file.write(struct.pack("<c", data))
     # byte or unsigned byte
     elif data_type == "b":
-        bin_file.write(struct.pack(">b", data))
+        bin_file.write(struct.pack("<b", data))

@@ -69,12 +69,9 @@ def read_tts_file(file_name):
     prefab["size_x"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
     prefab["size_y"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
     prefab["size_z"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
-
-    print("Prefab version: " + str(prefab["version"]))
-    print("Dimensions: " + str(prefab["size_x"]) + "x" + str(prefab["size_y"]) + "x" + str(prefab["size_z"]))
-
+    prefab["num_blocks"] = prefab["size_x"] * prefab["size_y"] * prefab["size_z"]
     prefab["layers"] = []
-
+    # todo: read as sequential array
     for layer_index in range(prefab["size_z"]):
         prefab["layers"].append([])
         for row_index in range(prefab["size_y"]):
@@ -85,11 +82,29 @@ def read_tts_file(file_name):
                 #get rid of flags, block id can only be less than 2048
                 block_id = value & 2047
                 flags = value >> 11
-
                 prefab["layers"][layer_index][row_index][block_index] = block_id
 
-    draw_prefab(prefab)
+    # read density
+    prefab["density"] = []
+    for x in range(prefab["num_blocks"]):
+        value = unpack(bin_file, "b")
+        prefab["density"].append(value)
+
+    # read damage
+    prefab["damage"] = []
+    for x in range(prefab["num_blocks"]):
+        value = unpack(bin_file, "h")
+        prefab["damage"].append(value)
+
+    # read textures (empty?)
+    prefab["num_textures"] = unpack(bin_file, "h")
+    prefab["textures"] = []
+
+    # read tile entities (empty?)
+    prefab["num_tile_entities"] = unpack(bin_file, "h")
+    prefab["tile_entities"] = []
+    return prefab
 
 
 if __name__ == '__main__':
-    read_tts_file("prefabs/test2/test2.tts")
+    read_tts_file("output/aifab_01.tts")

@@ -65,7 +65,7 @@ class Voxels:
                     #prefab["layers"][layer_index][row_index][block_index] = self.get_value_at(layer_index, row_index, block_index)
                     val = self.get_value_at(layer_index, row_index, block_index)
                     if val > 0:
-                        val = 1635844352
+                        val = 98657 # 61 81 01 00 = wood block from test3.tts
                     prefab["layers"][layer_index][row_index][block_index] = val
         encode(prefab, filename)
 
@@ -86,5 +86,5 @@ class Voxels:
 
 if __name__ == '__main__':
     v = Voxels("prefab1", (7,16,7), [])
-    v.from_training_image('generated_prefab_0.png')
-    v.to_tts_file('prefab1.tts')
+    v.from_training_image('output\\generated_prefab_0.png')
+    v.to_tts_file('output\\aifab_01.tts')
