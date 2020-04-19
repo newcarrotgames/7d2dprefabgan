@@ -12,11 +12,12 @@ GAN code is here:
 - [Prefabs](https://7daystodie.gamepedia.com/Prefabs)
 - https://forums.7daystodie.com/forum/-7-days-to-die-pc/game-modification/prefabs/73952-getting-started-prefabbing-complete-poi-creation
 
-you'll need to create a config.ini file that looks like this:
+To run some of the examples, you'll need to create a config.ini file that looks like this:
 
     [DEFAULT]
     gamePrefabsFolder = [7D2D STEAM FOLDER CONTAINING PREFABS]
 
-On Windows, the folder is usually (_you may need to escape the slashes_):
+On Windows, the folder is usually (_escape as needed_):
 
     C:\Program Files (x86)\Steam\steamapps\common\7 Days To Die\Data\Prefabs
+

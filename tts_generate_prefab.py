@@ -12,7 +12,6 @@ from read_training_data import read_training_data
 from IPython import display
 from pprint import pprint
 
-# todo: move these two functions for includes
 def make_generator_model():
     model = tf.keras.Sequential()
     model.add(layers.Dense(7*7*256, use_bias=False, input_shape=(100,)))
@@ -65,7 +64,7 @@ def generate_and_save_images(model, test_input):
     for i in range(predictions.shape[0]):
         plt.subplot(1, 1, i+1)
         plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
-        plt.imsave('generated_prefab_{}.png'.format(i), predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
+        plt.imsave('generated_prefab_{}.png'.format(i+100), predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
         plt.close('all')
 
 

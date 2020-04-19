@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+table {
+   max-width: 100%; 
+}
+
+td { 
+    width: 800px; 
+}

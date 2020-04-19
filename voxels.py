@@ -20,7 +20,12 @@ class Voxels:
     def get_cross_section(self, n):
         cross_section_size = self.width * self.depth
         offset = cross_section_size * n
-        return self.data[offset:offset+cross_section_size]
+        run = self.data[offset:offset+cross_section_size]
+        xs = []
+        for y in range(self.depth):
+            line = run[y * self.width:y * self.width + self.width]
+            xs.append(line)
+        return np.asarray(xs, dtype=np.uint8)
 
     def as_training_image(self):
         sqr_height = math.sqrt(self.height)
@@ -29,14 +34,14 @@ class Voxels:
         img_w = grid_width * self.width
         img_h = grid_depth * self.depth
         img_data = np.zeros((img_h, img_w, 3), dtype=np.uint8)
-        training_image = Image.fromarray(img_data, 'RGB')
-        for i in self.height:
+        training_image = Image.fromarray(img_data)
+        for i in range(self.height):
             cross_section = self.get_cross_section(i)
-            x = i % grid_width * width
-            y = i / grid_width * height
-            sub_image = Image.fromarray(cross_section, 'RGB')
+            x = i % grid_width * self.width
+            y = math.ceil(i / grid_width) * self.height
+            sub_image = Image.fromarray(cross_section)
             training_image.paste(sub_image, (x, y))
-        image.save("dataset\\train\\prefab_{}.png".format(self.name))
+        training_image.save("datasets\\training\\prefab_{}.png".format(self.name))
 
     def set_value_with_image_coords(self, x, z, val):
         grid_col = math.floor(x / self.width)
@@ -86,5 +91,5 @@ class Voxels:
 
 if __name__ == '__main__':
     v = Voxels("prefab1", (7,16,7), [])
-    v.from_training_image('output\\generated_prefab_0.png')
-    v.to_tts_file('output\\aifab_01.tts')
+    v.from_training_image('generated_prefab_100.png')
+    v.to_tts_file('output\\aifab_02.tts')

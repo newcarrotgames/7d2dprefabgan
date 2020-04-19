@@ -2,10 +2,13 @@ import os
 import time
 import random
 from file_utils import unpack
+from tts_read import read_tts_file
 from config import Config
 from pathlib import Path
 import ntpath
 import struct
+from voxels import Voxels
+import numpy as np
 
 def print_tts_details(prefab):
     print("Prefab version: " + str(prefab["version"]))
@@ -14,6 +17,17 @@ def print_tts_details(prefab):
     print("footer size: {}".format(len(prefab["footer"])))
     print("ratio: {}".format(len(prefab["footer"]) / prefab["total_blocks"]))
 
+def resize_voxels():
+    pad = np.zeros((3,1))
+    pad[0,0] = max(Input.shape) - Input.shape[0]
+    pad[1,0] = max(Input.shape) - Input.shape[1]
+    pad[2,0] = max(Input.shape) - Input.shape[2]
+    paddedInput = np.zeros((max(Input.shape),max(Input.shape),max(Input.shape)))
+    paddedInput = np.pad(Input, ((int(math.ceil(pad[0,0]/2)),
+        int(math.floor(pad[0,0]/2))),(int(math.ceil(pad[1,0]/2)),
+        int(math.floor(pad[1,0]/2))),(int(math.ceil(pad[2,0]/2)),
+        int(math.floor(pad[2,0]/2)))), 'constant', constant_values=0)
+    paddedInput.resize((16,16,16))
 
 def read_tts_footer(file_name):
     bin_file = open(file_name, "rb")
@@ -50,26 +64,26 @@ def read_tts_footer(file_name):
     # for b in footer_bytes:
     #     print('{:4d}'.format(b), end='')
 
+def layers_to_array(prefab):
+    result = []
+    for layer_index in range(prefab["size_z"]):
+        for row_index in range(prefab["size_y"]):
+            for block_index in range(prefab["size_x"]):
+                result.append(prefab["layers"][layer_index][row_index][block_index])
+    return np.asarray(result)
+
 if __name__ == '__main__':
     conf = Config.getInstance()
     totalPrefabs = 0
     rootdir = conf.get("gamePrefabsFolder")
-    sizes = {}
-    sizes["x"] = 0
-    sizes["y"] = 0
-    sizes["z"] = 0
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             if file.endswith(".tts") and "house" in file:
                 totalPrefabs += 1
                 filename = os.path.join(subdir, file)
-                print("reading tts file (len: {}): {}".format(Path(filename).stat().st_size, file))
-                prefab = read_tts_footer(filename)
-                print_tts_details(prefab)
-                sizes["x"] += prefab["size_x"]
-                sizes["y"] += prefab["size_y"]
-                sizes["z"] += prefab["size_z"]
+                print("reading tts file: {}".format(file))
+                tts_data = read_tts_file(filename)
+                block_data = layers_to_array(tts_data)
+                v = Voxels(file, (tts_data["size_x"], tts_data["size_y"], tts_data["size_z"]), block_data)
+                v.as_training_image()
     print("total prefabs: " + str(totalPrefabs))
-    print("average x: {}".format(sizes["x"] / totalPrefabs))
-    print("average y: {}".format(sizes["y"] / totalPrefabs))
-    print("average z: {}".format(sizes["z"] / totalPrefabs))

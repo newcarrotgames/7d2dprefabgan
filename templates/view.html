@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>three.js webgl - geometry - cube</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <script type="module">
+        import * as THREE from './js/three.module.js';
+        import { OrbitControls } from './js/OrbitControls.js';
+
+        getData(function (prefab) {
+            const size = [prefab.size_x, prefab.size_y, prefab.size_z];
+            const blockSize = 100;
+            const avgSize = (size[0] + size[1] + size[2]) / 3;
+            const offset = (blockSize * avgSize) / 2;
+            const heightOffset = 1000;
+
+            var camera, scene, renderer, controls;
+
+            init();
+            animate();
+
+            function init() {
+                camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
+                camera.position.z = 3000;
+
+                scene = new THREE.Scene();
+
+                var light = new THREE.AmbientLight(0xCCCCCC);
+                scene.add(light);
+
+                var geometry = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
+
+                // var texture = new THREE.TextureLoader().load('img/crate.gif');
+                // var material = new THREE.MeshBasicMaterial({ map: texture });
+
+                for (let x = 0; x < size[0]; x++) {
+                    for (let y = 0; y < size[1]; y++) {
+                        for (let z = 0; z < size[2]; z++) {
+                            const g = prefab.layers[z][y][x] % 256;
+                            if (g) {
+                                const c = g < 32 ? 
+                                    `rgb(${g},${g},0)` : 
+                                    `rgb(${g},${g},${g})`;
+                                console.log(c);
+                                const material = new THREE.MeshPhongMaterial({
+                                    color: c,
+                                    flatShading: true,
+                                });
+                                const mesh = new THREE.Mesh(geometry, material);
+                                scene.add(mesh);
+                                mesh.position.set(
+                                    blockSize * x - offset,
+                                    blockSize * y - offset + heightOffset,
+                                    blockSize * z - offset);
+                            }
+                        }
+                    }
+                }
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(renderer.domElement);
+
+                controls = new OrbitControls(camera, renderer.domElement);
+                controls.update();
+
+                window.addEventListener('resize', onWindowResize, false);
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                // mesh.rotation.x += 0.005;
+                // mesh.rotation.y += 0.01;
+                renderer.render(scene, camera);
+                controls.update();
+            }
+        });
+
+        function getData(handler) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    const prefab = JSON.parse(xhttp.responseText);
+                    console.log(prefab);
+                    handler(prefab);
+                }
+            };
+            xhttp.open("GET", "/api/tts/trailer_03", true);
+            xhttp.send();
+        }
+
+    </script>
+
+</body>
+
+</html>
