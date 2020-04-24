@@ -10,3 +10,9 @@ table {
 td { 
     width: 800px; 
 }
+
+#tts-select {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}

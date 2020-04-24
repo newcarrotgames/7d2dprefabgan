@@ -5,6 +5,8 @@
     <title>three.js webgl - geometry - cube</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -13,97 +15,147 @@
         import * as THREE from './js/three.module.js';
         import { OrbitControls } from './js/OrbitControls.js';
 
-        getData(function (prefab) {
-            const size = [prefab.size_x, prefab.size_y, prefab.size_z];
-            const blockSize = 100;
-            const avgSize = (size[0] + size[1] + size[2]) / 3;
-            const offset = (blockSize * avgSize) / 2;
-            const heightOffset = 1000;
+        var camera, scene, renderer, controls;
+        const view_depth = 20000;
 
-            var camera, scene, renderer, controls;
+        const loader = new THREE.CubeTextureLoader();
+        const texture = loader.load([
+            'img/sky.jpg',
+            'img/sky.jpg',
+            'img/sky_blue.jpg',
+            'img/sky.jpg',
+            'img/sky.jpg',
+            'img/sky.jpg',
+        ]);
 
-            init();
-            animate();
+        function showPrefab(name) {
+            if (renderer && renderer.domElement)
+                document.body.removeChild(renderer.domElement);
+            if (name.endsWith(".tts"))
+                name = name.replace(".tts", "");
+            get(`/api/tts/${name}`, function (prefab) {
+                console.log(prefab);
+                const size = [prefab.size_x, prefab.size_y, prefab.size_z];
+                const blockSize = 100;
+                const avgSize = (size[0] + size[1] + size[2]) / 3;
+                const offset = (blockSize * avgSize) / 2;
+                const heightOffset = 1000;
 
-            function init() {
-                camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
-                camera.position.z = 3000;
+                init();
+                animate();
 
-                scene = new THREE.Scene();
+                function init() {
+                    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, view_depth);
+                    camera.position.z = 3000;
 
-                var light = new THREE.AmbientLight(0xCCCCCC);
-                scene.add(light);
+                    scene = new THREE.Scene();
+                    scene.background = texture;
 
-                var geometry = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
+                    var light = new THREE.AmbientLight(0xCCCCCC);
+                    scene.add(light);
 
-                // var texture = new THREE.TextureLoader().load('img/crate.gif');
-                // var material = new THREE.MeshBasicMaterial({ map: texture });
+                    var groundGeometry = new THREE.BoxBufferGeometry(blockSize * 200, blockSize, blockSize * 200);
 
-                for (let x = 0; x < size[0]; x++) {
-                    for (let y = 0; y < size[1]; y++) {
-                        for (let z = 0; z < size[2]; z++) {
-                            const g = prefab.layers[z][y][x] % 256;
-                            if (g) {
-                                const c = g < 32 ? 
-                                    `rgb(${g},${g},0)` : 
-                                    `rgb(${g},${g},${g})`;
-                                console.log(c);
-                                const material = new THREE.MeshPhongMaterial({
-                                    color: c,
-                                    flatShading: true,
-                                });
-                                const mesh = new THREE.Mesh(geometry, material);
-                                scene.add(mesh);
-                                mesh.position.set(
-                                    blockSize * x - offset,
-                                    blockSize * y - offset + heightOffset,
-                                    blockSize * z - offset);
+                    var groundTexture = new THREE.TextureLoader().load('img/grass.jpg');
+                    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+                    groundTexture.repeat.set(16, 16);
+
+                    var groundMaterial = new THREE.MeshBasicMaterial({ map: groundTexture });
+                    // const groundMaterial = new THREE.MeshPhongMaterial({
+                    //                     color: `rgb(192,128,0)`,
+                    //                     flatShading: true,
+                    //                 });
+                    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+                    scene.add(groundMesh);
+                    groundMesh.position.set(
+                        0,
+                        -100,
+                        0);
+
+                    var geometry = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
+                    // var texture = new THREE.TextureLoader().load('img/crate.gif');
+                    // var material = new THREE.MeshBasicMaterial({ map: texture });
+                    for (let x = 0; x < size[0]; x++) {
+                        for (let y = 0; y < size[1]; y++) {
+                            for (let z = 0; z < size[2]; z++) {
+                                const g = prefab.layers[z][y][x] % 256;
+                                if (g) {
+                                    const c = g < 32 ?
+                                        `rgb(${g},${g},0)` :
+                                        `rgb(${g},${g},${g})`;
+                                    const material = new THREE.MeshPhongMaterial({
+                                        color: c,
+                                        flatShading: true,
+                                    });
+                                    const mesh = new THREE.Mesh(geometry, material);
+                                    scene.add(mesh);
+                                    mesh.position.set(
+                                        blockSize * x - offset,
+                                        blockSize * y - offset + heightOffset,
+                                        blockSize * z - offset);
+                                }
                             }
                         }
                     }
+
+                    renderer = new THREE.WebGLRenderer({ antialias: true });
+                    renderer.setPixelRatio(window.devicePixelRatio);
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    document.body.appendChild(renderer.domElement);
+
+                    controls = new OrbitControls(camera, renderer.domElement);
+                    controls.update();
+
+                    window.addEventListener('resize', onWindowResize, false);
                 }
 
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                document.body.appendChild(renderer.domElement);
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
 
-                controls = new OrbitControls(camera, renderer.domElement);
-                controls.update();
+                function animate() {
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                    controls.update();
+                }
+            });
+        }
 
-                window.addEventListener('resize', onWindowResize, false);
-            }
+        showPrefab('trailer_03');
 
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
+        function selectPrefab() {
+            let e = document.getElementById('tts-select');
+            var selection = e.options[e.selectedIndex].value;
+            showPrefab(selection);
+        }
 
-            function animate() {
-                requestAnimationFrame(animate);
-                // mesh.rotation.x += 0.005;
-                // mesh.rotation.y += 0.01;
-                renderer.render(scene, camera);
-                controls.update();
-            }
+        get("/api/data/alltts", function (files) {
+            let s = document.getElementById('tts-select');
+            files.forEach(function (file) {
+                var option = document.createElement('option');
+                option.text = file;
+                option.value = file;
+                s.add(option);
+            });
+            s.addEventListener("change", selectPrefab);
         });
 
-        function getData(handler) {
+        function get(url, handler) {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    const prefab = JSON.parse(xhttp.responseText);
-                    console.log(prefab);
-                    handler(prefab);
+                    const result = JSON.parse(xhttp.responseText);
+                    handler(result);
                 }
             };
-            xhttp.open("GET", "/api/tts/trailer_03", true);
+            xhttp.open("GET", url, true);
             xhttp.send();
         }
 
     </script>
-
+    <select id="tts-select" class="form-control col-md-2"></select>
 </body>
 
 </html>

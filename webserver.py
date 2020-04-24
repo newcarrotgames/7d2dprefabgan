@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, Response, send_from_directory
 from pathlib import Path
 from tts_read import read_tts_file
 from build_tts_training_data import layers_to_array
@@ -10,6 +10,8 @@ mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('text/javascript', '.js')
 
 app = Flask(__name__)
+
+tts_files = []
 
 # these method are not safe to use outside of your dev environment
 @app.route('/js/<path:path>')
@@ -34,7 +36,7 @@ def view():
 
 @app.route('/api/tts/<name>')
 def apitts(name):
-    tts = read_tts_file(Path("./prefabs/{0}/{0}.tts".format(name)))
+    tts = read_tts_file(Path("./prefabs/all/{0}.tts".format(name)))
     data = layers_to_array(tts)
     l = []
     for x in data:
@@ -44,12 +46,20 @@ def apitts(name):
     r = {}
     for key in keys:
         o = tts[key]
-        print(type(o))
         if isinstance(o, bytes):
             r[key] = o.hex()
         else:
             r[key] = o
     return json.dumps(r)
 
+@app.route('/api/data/alltts')
+def get_all_tts_files():
+    return Response(json.dumps(tts_files), mimetype='application/json')
+
 if __name__ == '__main__':
+    print("caching tts file names")
+    for subdir, dirs, files in os.walk("./prefabs/all"):
+        for file in files:
+            if file.endswith(".tts"):
+                tts_files.append(file)
     app.run(debug=True)
