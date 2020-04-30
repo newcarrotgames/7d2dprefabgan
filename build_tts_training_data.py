@@ -9,6 +9,8 @@ import ntpath
 import struct
 from voxels import Voxels
 import numpy as np
+from resize_tts import resize_prefab
+from tts_utils import layers_to_array
 
 def print_tts_details(prefab):
     print("Prefab version: " + str(prefab["version"]))
@@ -64,26 +66,19 @@ def read_tts_footer(file_name):
     # for b in footer_bytes:
     #     print('{:4d}'.format(b), end='')
 
-def layers_to_array(prefab):
-    result = []
-    for layer_index in range(prefab["size_z"]):
-        for row_index in range(prefab["size_y"]):
-            for block_index in range(prefab["size_x"]):
-                result.append(prefab["layers"][layer_index][row_index][block_index])
-    return np.asarray(result)
-
 if __name__ == '__main__':
     conf = Config.getInstance()
     totalPrefabs = 0
     rootdir = conf.get("gamePrefabsFolder")
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
-            if file.endswith(".tts") and "house" in file:
+            if file.endswith(".tts") and "_house_" in file:
                 totalPrefabs += 1
                 filename = os.path.join(subdir, file)
                 print("reading tts file: {}".format(file))
                 tts_data = read_tts_file(filename)
-                block_data = layers_to_array(tts_data)
-                v = Voxels(file, (tts_data["size_x"], tts_data["size_y"], tts_data["size_z"]), block_data)
+                resized_prefab = resize_prefab(tts_data, (32, 32, 32))
+                block_data = layers_to_array(resized_prefab)
+                v = Voxels(file, (resized_prefab["size_x"], resized_prefab["size_y"], resized_prefab["size_z"]), block_data)
                 v.as_training_image()
     print("total prefabs: " + str(totalPrefabs))

@@ -13,6 +13,30 @@ td {
 
 #tts-select {
     position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+#scale-sliders {
+    position: absolute;
     right: 10px;
     top: 10px;
+    margin: 20px;
+    padding: 20px;
+}
+
+.control-panel {
+    border-radius: 10px;
+    background: #FFF;
+    border: 2px outset #CCC;
+}
+
+#scale-sliders label {
+    font-weight: bold;
+    font-size: 24px;
+    margin: 10px;
+}
+
+.slider-value {
+    width: 30px;
 }

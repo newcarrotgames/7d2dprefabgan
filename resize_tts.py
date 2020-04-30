@@ -3,43 +3,46 @@ from tts_read import read_tts_file
 import numpy as np
 import matplotlib.pyplot as plt
 from voxels import Voxels
-from build_tts_training_data import layers_to_array
 import math
+from tts_utils import draw_prefab, layers_to_array
+import sys
 
-tts_data = read_tts_file("prefabs/trailer3/trailer_03.tts")
-original_size = (tts_data["size_x"], tts_data["size_y"], tts_data["size_z"])
-print(original_size)
-block_data = layers_to_array(tts_data).reshape(original_size)
-print(block_data.shape)
+def resize_prefab(prefab, new_size):
+    # calculate dim scalars
+    x_s = prefab["size_x"] / new_size[0]
+    y_s = prefab["size_y"] / new_size[1]
+    z_s = prefab["size_z"] / new_size[2]
 
-pad = np.zeros((3,1))
-pad[0,0] = max(block_data.shape) - block_data.shape[0]
-pad[1,0] = max(block_data.shape) - block_data.shape[1]
-pad[2,0] = max(block_data.shape) - block_data.shape[2]
+    # create fresh blank array of new size
+    resized_voxel_data = np.zeros((new_size[2], new_size[1], new_size[0]))
 
-padded_block_data = np.zeros((max(block_data.shape),max(block_data.shape),max(block_data.shape)))
+    # iterate through each block of new array and 
+    # scale by sampling values using the dim scalars
+    for z_i in range(new_size[2]):
+        for y_i in range(new_size[1]):
+            for x_i in range(new_size[0]):
+                x_d = math.floor(x_i * x_s)
+                y_d = math.floor(y_i * y_s)
+                z_d = math.floor(z_i * z_s)
+                try:
+                    resized_voxel_data[z_i][y_i][x_i] = prefab["layers"][z_d][y_d][x_d]
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    print("i: {} {} {}".format(x_i, y_i, z_i))
+                    print("d: {} {} {}".format(x_d, y_d, z_d))
 
-padded_block_data = np.pad(block_data, ((int(math.ceil(pad[0,0]/2)),
-    int(math.floor(pad[0,0]/2))),(int(math.ceil(pad[1,0]/2)),
-    int(math.floor(pad[1,0]/2))),(int(math.ceil(pad[2,0]/2)),
-    int(math.floor(pad[2,0]/2)))), 'constant', constant_values=0)
+    # create new prefab and return it
+    new_prefab = prefab
+    new_prefab["size_x"] = new_size[0]
+    new_prefab["size_y"] = new_size[1]
+    new_prefab["size_z"] = new_size[2]
+    print("type: {} {} {}".format(type(new_prefab["size_x"]), type(new_prefab["size_y"]), type(new_prefab["size_z"])))
+    new_prefab["layers"] = resized_voxel_data
+    return new_prefab
 
-new_size = (16,16,16)
-padded_block_data.resize(new_size)
-
-# fig = plt.figure()
-# ax = plt.axes(projection='3d')
-
-# for z in range(new_size[2]):
-#     for y in range(new_size[1]):
-#         for x in range(new_size[0]):
-#             print (padded_block_data.shape)
-#             print (x, y, z)
-#             if padded_block_data[z][y][x] != 0:
-#                 ax.scatter3D(x, y, z)
-
-prefab_block_data = padded_block_data.flatten()
-print(prefab_block_data.shape)
-name = "trailer_03_resized.tts"
-v = Voxels(name, new_size, prefab_block_data)
-v.to_tts_file(name)
+if __name__ == '__main__':
+    tts_data = read_tts_file("prefabs/all/trailer_03.tts")
+    original_size = (tts_data["size_x"], tts_data["size_y"], tts_data["size_z"])
+    print(original_size)
+    resized_prefab = resize_prefab(tts_data, (16, 16, 30))
+    draw_prefab(resized_prefab)

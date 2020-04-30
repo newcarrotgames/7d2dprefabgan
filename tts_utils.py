@@ -1,5 +1,6 @@
 import pygame
 import random
+import numpy as np
 
 def draw_prefab(prefab):
     colors = {}
@@ -29,3 +30,11 @@ def draw_prefab(prefab):
 
     print("Block ids and colors: " + str(colors))
     pygame.image.save(image, "output.png")
+
+def layers_to_array(prefab):
+    result = []
+    for layer_index in range(prefab["size_z"]):
+        for row_index in range(prefab["size_y"]):
+            for block_index in range(prefab["size_x"]):
+                result.append(prefab["layers"][layer_index][row_index][block_index])
+    return np.asarray(result)

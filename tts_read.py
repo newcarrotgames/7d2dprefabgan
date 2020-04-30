@@ -38,6 +38,7 @@ def read_tts_file(file_name):
     prefab["size_z"] = unpack(bin_file, "H")    # each size value is 2 bytes, but again only the first byte matters
     prefab["num_blocks"] = prefab["size_x"] * prefab["size_y"] * prefab["size_z"]
     prefab["layers"] = []
+    
     # todo: read as sequential array
     for layer_index in range(prefab["size_z"]):
         prefab["layers"].append([])

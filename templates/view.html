@@ -15,8 +15,32 @@
         import * as THREE from './js/three.module.js';
         import { OrbitControls } from './js/OrbitControls.js';
 
+        // set scale sliders
+        let scalars = [16, 16, 16];
+
+        function updateSliders() {
+            $('slider-x-value').value = scalars[0] = $('slider-x').value;
+            $('slider-y-value').value = scalars[1] = $('slider-y').value;
+            $('slider-z-value').value = scalars[2] = $('slider-z').value;
+            loadPrefab();
+        }
+
+        function initSliders() {
+            $('slider-x').value = $('slider-x-value').value = scalars[0];
+            $('slider-y').value = $('slider-y-value').value = scalars[1];
+            $('slider-z').value = $('slider-z-value').value = scalars[2];
+
+            $('slider-x').addEventListener("change", updateSliders);
+            $('slider-y').addEventListener("change", updateSliders);
+            $('slider-z').addEventListener("change", updateSliders);
+        }
+
+        initSliders();
+
         var camera, scene, renderer, controls;
         const view_depth = 20000;
+        const blockSize = 100;
+        const heightOffset = 1000;
 
         const loader = new THREE.CubeTextureLoader();
         const texture = loader.load([
@@ -33,13 +57,12 @@
                 document.body.removeChild(renderer.domElement);
             if (name.endsWith(".tts"))
                 name = name.replace(".tts", "");
-            get(`/api/tts/${name}`, function (prefab) {
+            get(`/api/tts/${name}?size=${scalars.join(',')}`, function (prefab) {
                 console.log(prefab);
                 const size = [prefab.size_x, prefab.size_y, prefab.size_z];
-                const blockSize = 100;
+                
                 const avgSize = (size[0] + size[1] + size[2]) / 3;
                 const offset = (blockSize * avgSize) / 2;
-                const heightOffset = 1000;
 
                 init();
                 animate();
@@ -54,7 +77,7 @@
                     var light = new THREE.AmbientLight(0xCCCCCC);
                     scene.add(light);
 
-                    var groundGeometry = new THREE.BoxBufferGeometry(blockSize * 200, blockSize, blockSize * 200);
+                    var groundGeometry = new THREE.BoxGeometry(blockSize * 200, blockSize, blockSize * 200);
 
                     var groundTexture = new THREE.TextureLoader().load('img/grass.jpg');
                     groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
@@ -72,7 +95,9 @@
                         -100,
                         0);
 
-                    var geometry = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
+                    var geometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+                    var prefabGeo = new THREE.Geometry();
+
                     // var texture = new THREE.TextureLoader().load('img/crate.gif');
                     // var material = new THREE.MeshBasicMaterial({ map: texture });
                     for (let x = 0; x < size[0]; x++) {
@@ -88,15 +113,20 @@
                                         flatShading: true,
                                     });
                                     const mesh = new THREE.Mesh(geometry, material);
-                                    scene.add(mesh);
                                     mesh.position.set(
                                         blockSize * x - offset,
                                         blockSize * y - offset + heightOffset,
                                         blockSize * z - offset);
+                                    mesh.updateMatrix();
+                                    prefabGeo.merge(mesh.geometry, mesh.matrix);
                                 }
                             }
                         }
                     }
+
+                    var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+                    var mesh = new THREE.Mesh(prefabGeo, material);
+                    scene.add(mesh);
 
                     renderer = new THREE.WebGLRenderer({ antialias: true });
                     renderer.setPixelRatio(window.devicePixelRatio);
@@ -123,23 +153,24 @@
             });
         }
 
-        showPrefab('trailer_03');
-
-        function selectPrefab() {
-            let e = document.getElementById('tts-select');
-            var selection = e.options[e.selectedIndex].value;
-            showPrefab(selection);
+        function loadPrefab() {
+            console.log('prefab select value: ', $('tts-select').value);
+            showPrefab($('tts-select').value);
         }
 
         get("/api/data/alltts", function (files) {
-            let s = document.getElementById('tts-select');
+            let s = $('tts-select');
             files.forEach(function (file) {
                 var option = document.createElement('option');
                 option.text = file;
                 option.value = file;
+                if (file == 'trailer_03.tts')
+                    option.selected = true;
                 s.add(option);
             });
-            s.addEventListener("change", selectPrefab);
+            console.log('prefab select value: ', s.value);
+            s.addEventListener("change", loadPrefab);
+            loadPrefab();
         });
 
         function get(url, handler) {
@@ -154,8 +185,31 @@
             xhttp.send();
         }
 
+        // utilities
+
+        function $(id) {
+            return document.getElementById(id);
+        }
+
     </script>
     <select id="tts-select" class="form-control col-md-2"></select>
+    <div id="scale-sliders" class="control-panel">
+        <div>
+            <label for="slider-x">X</label>
+            <input type="range" id="slider-x" min="8" max="64" />
+            <input type="text" id="slider-x-value" class="slider-value" />
+        </div>
+        <div>
+            <label for="slider-y">Y</label>
+            <input type="range" id="slider-y" min="8" max="64">
+            <input type="text" id="slider-y-value" class="slider-value" />
+        </div>
+        <div>
+            <label for="slider-z">Z</label>
+            <input type="range" id="slider-z" min="8" max="64">
+            <input type="text" id="slider-z-value" class="slider-value" />
+        </div>
+    </div>
 </body>
 
 </html>

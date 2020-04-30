@@ -1,10 +1,12 @@
 import os
 import json
-from flask import Flask, render_template, Response, send_from_directory
+from flask import Flask, render_template, Response, send_from_directory, request
 from pathlib import Path
 from tts_read import read_tts_file
+from resize_tts import resize_prefab
 from build_tts_training_data import layers_to_array
 import mimetypes
+import numpy as np
 
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('text/javascript', '.js')
@@ -36,18 +38,26 @@ def view():
 
 @app.route('/api/tts/<name>')
 def apitts(name):
+    size = request.args.get('size')
+    print(size.split(','))
     tts = read_tts_file(Path("./prefabs/all/{0}.tts".format(name)))
-    data = layers_to_array(tts)
+    sizes = size.split(',')
+    new_size = (int(sizes[0]), int(sizes[1]), int(sizes[2]))
+    print("new_size: {}", new_size)
+    resized_tts = resize_prefab(tts, new_size)
+    data = layers_to_array(resized_tts)
     l = []
     for x in data:
         l.append(int(x))
-    tts["data"] = l
-    keys = tts.keys()
+    resized_tts["data"] = l
+    keys = resized_tts.keys()
     r = {}
     for key in keys:
-        o = tts[key]
+        o = resized_tts[key]
         if isinstance(o, bytes):
             r[key] = o.hex()
+        elif isinstance(o, np.ndarray):
+            r[key] = o.tolist()
         else:
             r[key] = o
     return json.dumps(r)
