@@ -77,7 +77,7 @@ if __name__ == '__main__':
                 filename = os.path.join(subdir, file)
                 print("reading tts file: {}".format(file))
                 tts_data = read_tts_file(filename)
-                resized_prefab = resize_prefab(tts_data, (32, 32, 32))
+                resized_prefab = resize_prefab(tts_data, (16, 16, 16))
                 block_data = layers_to_array(resized_prefab)
                 v = Voxels(file, (resized_prefab["size_x"], resized_prefab["size_y"], resized_prefab["size_z"]), block_data)
                 v.as_training_image()

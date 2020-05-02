@@ -7,6 +7,10 @@ from resize_tts import resize_prefab
 from build_tts_training_data import layers_to_array
 import mimetypes
 import numpy as np
+from config import Config
+from nim_utils import read_nim
+
+conf = Config.getInstance()
 
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('text/javascript', '.js')
@@ -61,6 +65,13 @@ def apitts(name):
         else:
             r[key] = o
     return json.dumps(r)
+
+@app.route('/api/nim/<name>')
+def apinim(name):
+    rootdir = conf.get("gamePrefabsFolder")
+    filename = os.path.join(rootdir, "{}.blocks.nim".format(name))
+    block_map = read_nim(filename)
+    return json.dumps(block_map)
 
 @app.route('/api/data/alltts')
 def get_all_tts_files():

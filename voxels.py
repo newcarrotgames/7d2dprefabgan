@@ -27,22 +27,6 @@ class Voxels:
             xs.append(line)
         return np.asarray(xs, dtype=np.uint8)
 
-    def as_training_image(self):
-        sqr_height = math.sqrt(self.height)
-        grid_width = math.ceil(sqr_height)
-        grid_depth = math.floor(sqr_height)
-        img_w = grid_width * self.width
-        img_h = grid_depth * self.depth
-        img_data = np.zeros((img_h, img_w, 3), dtype=np.uint8)
-        training_image = Image.fromarray(img_data)
-        for i in range(self.height):
-            cross_section = self.get_cross_section(i)
-            x = i % grid_width * self.width
-            y = math.ceil(i / grid_width) * self.height
-            sub_image = Image.fromarray(cross_section)
-            training_image.paste(sub_image, (x, y))
-        training_image.save("datasets\\training\\prefab_{}.png".format(self.name))
-
     def set_value_with_image_coords(self, x, z, val):
         grid_col = math.floor(x / self.width)
         grid_row = math.floor(z / self.depth)
@@ -87,6 +71,24 @@ class Voxels:
             for pixel_index, pixel in enumerate(row):
                 self.set_value_with_image_coords(pixel_index, row_index, pixel[0])
                 # print('pixel at {}, {}: {}'.format(pixel_index, row_index, pixel))
+
+    def as_training_image(self):
+        sqr_height = math.sqrt(self.height)
+        grid_width = math.ceil(sqr_height)
+        grid_depth = math.floor(sqr_height)
+        img_w = grid_width * self.width
+        img_h = grid_depth * self.depth
+        img_data = np.zeros((img_h, img_w, 3), dtype=np.uint8)
+        print("grid_width: {}, grid_depth: {}".format(grid_width, grid_depth))
+        print("img_w: {}, img_h: {}".format(img_w, img_h))
+        training_image = Image.fromarray(img_data)
+        for i in range(self.height):
+            cross_section = self.get_cross_section(i)
+            x = i % grid_width * self.width
+            y = math.ceil(i / grid_width) * self.height
+            sub_image = Image.fromarray(cross_section)
+            training_image.paste(sub_image, (x, y))
+        training_image.save("datasets\\training\\prefab_{}.png".format(self.name))
 
 
 if __name__ == '__main__':

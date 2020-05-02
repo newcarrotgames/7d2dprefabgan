@@ -11,6 +11,29 @@
 </head>
 
 <body>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        varying vec4 vPos;
+
+        void main() {
+            vPos = modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * vPos;
+          }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        varying vec4 vPos;
+        varying float c;
+
+        void main() {
+            if (mod(gl_FragCoord.x, 100) = 0) {
+                c = 1.0;
+            } else {
+                c = 0.0;
+            }
+            gl_FragColor = vec4(c, c, c, 1.0);
+          }
+    </script>
+
     <script type="module">
         import * as THREE from './js/three.module.js';
         import { OrbitControls } from './js/OrbitControls.js';
@@ -40,7 +63,6 @@
         var camera, scene, renderer, controls;
         const view_depth = 20000;
         const blockSize = 100;
-        const heightOffset = 1000;
 
         const loader = new THREE.CubeTextureLoader();
         const texture = loader.load([
@@ -52,15 +74,22 @@
             'img/sky.jpg',
         ]);
 
-        function showPrefab(name) {
+        var shaderMaterial = new THREE.ShaderMaterial({
+            vertexShader: document.getElementById('vertexShader').textContent,
+            fragmentShader: document.getElementById('fragmentShader').textContent
+        });
+
+        var texture2 = new THREE.TextureLoader().load('img/frame.jpg');
+        var material2 = new THREE.MeshBasicMaterial({ map: texture2 });
+
+        async function showPrefab(name) {
             if (renderer && renderer.domElement)
                 document.body.removeChild(renderer.domElement);
             if (name.endsWith(".tts"))
                 name = name.replace(".tts", "");
-            get(`/api/tts/${name}?size=${scalars.join(',')}`, function (prefab) {
-                console.log(prefab);
+            const blockMap = await get(`/api/nim/${name}`);
+            get(`/api/tts/${name}?size=${scalars.join(',')}`).then((prefab) => {
                 const size = [prefab.size_x, prefab.size_y, prefab.size_z];
-                
                 const avgSize = (size[0] + size[1] + size[2]) / 3;
                 const offset = (blockSize * avgSize) / 2;
 
@@ -84,38 +113,26 @@
                     groundTexture.repeat.set(16, 16);
 
                     var groundMaterial = new THREE.MeshBasicMaterial({ map: groundTexture });
-                    // const groundMaterial = new THREE.MeshPhongMaterial({
-                    //                     color: `rgb(192,128,0)`,
-                    //                     flatShading: true,
-                    //                 });
                     const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+                    groundMesh.position.set(0, -100, 0);
                     scene.add(groundMesh);
-                    groundMesh.position.set(
-                        0,
-                        -100,
-                        0);
 
                     var geometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
                     var prefabGeo = new THREE.Geometry();
 
-                    // var texture = new THREE.TextureLoader().load('img/crate.gif');
-                    // var material = new THREE.MeshBasicMaterial({ map: texture });
                     for (let x = 0; x < size[0]; x++) {
                         for (let y = 0; y < size[1]; y++) {
                             for (let z = 0; z < size[2]; z++) {
-                                const g = prefab.layers[z][y][x] % 256;
+                                const g = prefab.layers[z][y][x];
+                                console.log(blockMap[g]);
                                 if (g) {
                                     const c = g < 32 ?
                                         `rgb(${g},${g},0)` :
                                         `rgb(${g},${g},${g})`;
-                                    const material = new THREE.MeshPhongMaterial({
-                                        color: c,
-                                        flatShading: true,
-                                    });
-                                    const mesh = new THREE.Mesh(geometry, material);
+                                    const mesh = new THREE.Mesh(geometry);
                                     mesh.position.set(
                                         blockSize * x - offset,
-                                        blockSize * y - offset + heightOffset,
+                                        blockSize * y,
                                         blockSize * z - offset);
                                     mesh.updateMatrix();
                                     prefabGeo.merge(mesh.geometry, mesh.matrix);
@@ -124,8 +141,7 @@
                         }
                     }
 
-                    var material = new THREE.MeshPhongMaterial({color: 0xFF0000});
-                    var mesh = new THREE.Mesh(prefabGeo, material);
+                    var mesh = new THREE.Mesh(prefabGeo, material2);
                     scene.add(mesh);
 
                     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -154,11 +170,10 @@
         }
 
         function loadPrefab() {
-            console.log('prefab select value: ', $('tts-select').value);
             showPrefab($('tts-select').value);
         }
 
-        get("/api/data/alltts", function (files) {
+        get("/api/data/alltts").then((files) => {
             let s = $('tts-select');
             files.forEach(function (file) {
                 var option = document.createElement('option');
@@ -168,24 +183,33 @@
                     option.selected = true;
                 s.add(option);
             });
-            console.log('prefab select value: ', s.value);
             s.addEventListener("change", loadPrefab);
             loadPrefab();
+        }).catch(e => {
+            console.error(e);
         });
 
-        function get(url, handler) {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    const result = JSON.parse(xhttp.responseText);
-                    handler(result);
-                }
-            };
-            xhttp.open("GET", url, true);
-            xhttp.send();
-        }
-
         // utilities
+
+        async function get(url, handler) {
+            var xhttp = new XMLHttpRequest();
+            return new Promise((resolve, reject) => {
+                xhttp.onreadystatechange = function () {
+                    if (xhttp.readyState !== 4) return;
+                    if (this.status == 200 && xhttp.status < 300) {
+                        const result = JSON.parse(xhttp.responseText);
+                        resolve(result);
+                    } else {
+                        reject({
+                            status: xhttp.status,
+                            statusText: xhttp.statusText
+                        });
+                    }
+                };
+                xhttp.open("GET", url, true);
+                xhttp.send();
+            });
+        }
 
         function $(id) {
             return document.getElementById(id);

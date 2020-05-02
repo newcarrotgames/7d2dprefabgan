@@ -20,7 +20,7 @@ from IPython import display
 
 print(train_images.shape)
 
-train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
+train_images = train_images.reshape(train_images.shape[0], 64, 64, 1).astype('float32')
 train_images = (train_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
 
 BUFFER_SIZE = 60000
@@ -49,7 +49,7 @@ def make_generator_model():
         model.add(layers.LeakyReLU())
  
         model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
-        assert model.output_shape == (None, 28, 28, 1)
+        assert model.output_shape == (None, 64, 64, 1)
  
         return model
  
@@ -62,7 +62,7 @@ plt.imshow(generated_image[0, :, :, 0], cmap='gray')
  
 def make_discriminator_model():
         model = tf.keras.Sequential()
-        model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', input_shape=[28, 28, 1]))
+        model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', input_shape=[64, 64, 1]))
         model.add(layers.LeakyReLU())
         model.add(layers.Dropout(0.3))
  

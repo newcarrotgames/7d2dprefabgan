@@ -23,6 +23,42 @@ from pathlib import Path
 #
 # 
 
+# _reader.ReadInt32();
+# lock (this)
+# {
+#     Array.Clear(idsToNames, 0, idsToNames.Length);
+#     namesToIds.Clear();
+#     int num = _reader.ReadInt32();
+#     for (int i = 0; i < num; i++)
+#     {
+#         int num2 = _reader.ReadInt32();
+#         string text = _reader.ReadString();
+#         idsToNames[num2] = text;
+#         namesToIds[text] = num2;
+#     }
+#     isDirty = false;
+# }
+
+def read_nim(filename):
+    # open file in binary mode
+    bin_file = open(filename, "rb")
+
+    # skip first four bytes
+    unpack(bin_file, "I")
+
+    # create map var
+    map = {}
+
+    # read number of maps
+    num = unpack(bin_file, "I")
+    for i in range(num):
+        num2 = unpack(bin_file, "I")
+        slen = unpack(bin_file, "B")
+        name = unpack(bin_file, "s", slen)
+        print ("id: {}, name: {}".format(num2, name))
+        map[num2] = name
+    return map
+
 def getNIMHeader(filename):
     bin_file = open(filename, "rb")
     header = []
@@ -36,7 +72,7 @@ def printHeaderInfo(header):
         print('{:3d}|'.format(b), end='')
     print('')
 
-def main():
+def read_nim_headers():
     conf = Config.getInstance()
     totalPrefabs = 0 
     rootdir = conf.get("gamePrefabsFolder")
@@ -50,6 +86,8 @@ def main():
                 printHeaderInfo(header)
     print("total prefabs: " + str(totalPrefabs))
 
+def main():
+    read_nim("prefabs/trailer_03/trailer_03.blocks.nim")
 
 if __name__ == '__main__':
     main()
