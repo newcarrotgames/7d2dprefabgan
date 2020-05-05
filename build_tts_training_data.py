@@ -11,6 +11,7 @@ from voxels import Voxels
 import numpy as np
 from resize_tts import resize_prefab
 from tts_utils import layers_to_array
+from nim_utils import read_nim
 
 def print_tts_details(prefab):
     print("Prefab version: " + str(prefab["version"]))
@@ -72,13 +73,17 @@ if __name__ == '__main__':
     rootdir = conf.get("gamePrefabsFolder")
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
-            if file.endswith(".tts") and "_house_" in file:
+            if file.endswith(".tts"):
                 totalPrefabs += 1
                 filename = os.path.join(subdir, file)
                 print("reading tts file: {}".format(file))
                 tts_data = read_tts_file(filename)
+                nim_filename = filename.replace(".tts", ".blocks.nim")
+                block_map = read_nim(nim_filename)
+                for key, value in block_map.items():
+                    print ("key: {}, value: {}".format(key, value))
                 resized_prefab = resize_prefab(tts_data, (16, 16, 16))
                 block_data = layers_to_array(resized_prefab)
                 v = Voxels(file, (resized_prefab["size_x"], resized_prefab["size_y"], resized_prefab["size_z"]), block_data)
-                v.as_training_image()
+                v.as_training_image(block_map)
     print("total prefabs: " + str(totalPrefabs))

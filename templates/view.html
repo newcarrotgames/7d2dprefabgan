@@ -90,8 +90,8 @@
             const blockMap = await get(`/api/nim/${name}`);
             get(`/api/tts/${name}?size=${scalars.join(',')}`).then((prefab) => {
                 const size = [prefab.size_x, prefab.size_y, prefab.size_z];
-                const avgSize = (size[0] + size[1] + size[2]) / 3;
-                const offset = (blockSize * avgSize) / 2;
+                const x_offset = (blockSize * size[0]) / 2;
+                const z_offset = (blockSize * size[2]) / 2;
 
                 init();
                 animate();
@@ -124,16 +124,16 @@
                         for (let y = 0; y < size[1]; y++) {
                             for (let z = 0; z < size[2]; z++) {
                                 const g = prefab.layers[z][y][x];
-                                console.log(blockMap[g]);
+                                // console.log(blockMap[g]);
                                 if (g) {
                                     const c = g < 32 ?
                                         `rgb(${g},${g},0)` :
                                         `rgb(${g},${g},${g})`;
                                     const mesh = new THREE.Mesh(geometry);
                                     mesh.position.set(
-                                        blockSize * x - offset,
+                                        blockSize * x - x_offset,
                                         blockSize * y,
-                                        blockSize * z - offset);
+                                        blockSize * z - z_offset);
                                     mesh.updateMatrix();
                                     prefabGeo.merge(mesh.geometry, mesh.matrix);
                                 }
@@ -179,7 +179,7 @@
                 var option = document.createElement('option');
                 option.text = file;
                 option.value = file;
-                if (file == 'trailer_03.tts')
+                if (file == 'aifab_03.tts')
                     option.selected = true;
                 s.add(option);
             });
@@ -189,8 +189,13 @@
             console.error(e);
         });
 
-        // utilities
+        $('regen-button')
 
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // utilities
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        // promisified get
         async function get(url, handler) {
             var xhttp = new XMLHttpRequest();
             return new Promise((resolve, reject) => {
@@ -211,6 +216,12 @@
             });
         }
 
+        // get all elements with selector
+        function _(id) {
+            return document.querySelectorAll(id);
+        }
+
+        // get element by id without all the typing
         function $(id) {
             return document.getElementById(id);
         }
@@ -218,6 +229,7 @@
     </script>
     <select id="tts-select" class="form-control col-md-2"></select>
     <div id="scale-sliders" class="control-panel">
+        <div><button id="regen-button">regen</button></div>
         <div>
             <label for="slider-x">X</label>
             <input type="range" id="slider-x" min="8" max="64" />

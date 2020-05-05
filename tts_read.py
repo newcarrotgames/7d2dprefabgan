@@ -73,6 +73,5 @@ def read_tts_file(file_name):
     prefab["tile_entities"] = []
     return prefab
 
-
 if __name__ == '__main__':
     read_tts_file("output/aifab_01.tts")

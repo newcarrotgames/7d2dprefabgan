@@ -70,12 +70,19 @@ def apitts(name):
 def apinim(name):
     rootdir = conf.get("gamePrefabsFolder")
     filename = os.path.join(rootdir, "{}.blocks.nim".format(name))
-    block_map = read_nim(filename)
+    block_map = {}
+    if os.path.exist(filename):
+        block_map = read_nim(filename)
     return json.dumps(block_map)
 
 @app.route('/api/data/alltts')
 def get_all_tts_files():
     return Response(json.dumps(tts_files), mimetype='application/json')
+
+@app.route('/api/regen')
+def regen_prefab():
+    os.system('generate_prefab.bat')
+    return json.dumps({"result": True})
 
 if __name__ == '__main__':
     print("caching tts file names")

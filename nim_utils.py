@@ -55,7 +55,6 @@ def read_nim(filename):
         num2 = unpack(bin_file, "I")
         slen = unpack(bin_file, "B")
         name = unpack(bin_file, "s", slen)
-        print ("id: {}, name: {}".format(num2, name))
         map[num2] = name
     return map
 
@@ -85,6 +84,15 @@ def read_nim_headers():
                 header = getNIMHeader(filename)
                 printHeaderInfo(header)
     print("total prefabs: " + str(totalPrefabs))
+
+structural_phrases = ['wood', 'concrete']
+
+def is_structural_block(block_id, block_type_map):
+    block_type = block_type_map[block_id]
+    for phrase in structural_phrases:
+        if phrase in block_type.lower():
+            return True
+    return False
 
 def main():
     read_nim("prefabs/trailer_03/trailer_03.blocks.nim")

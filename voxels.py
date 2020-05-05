@@ -2,6 +2,7 @@ import math
 from PIL import Image
 import numpy as np
 from tts_write import encode
+from nim_utils import is_structural_block
 
 class Voxels:
     def __init__(self, name, dim, data):
@@ -17,14 +18,20 @@ class Voxels:
 
         self.data = data
 
-    def get_cross_section(self, n):
+    def get_cross_section(self, n, block_map):
         cross_section_size = self.width * self.depth
         offset = cross_section_size * n
         run = self.data[offset:offset+cross_section_size]
         xs = []
         for y in range(self.depth):
             line = run[y * self.width:y * self.width + self.width]
-            xs.append(line)
+            new_line = []
+            for b in line:
+                if is_structural_block(b, block_map):
+                    new_line.append(b)
+                else:
+                    new_line.append(0)
+            xs.append(new_line)
         return np.asarray(xs, dtype=np.uint8)
 
     def set_value_with_image_coords(self, x, z, val):
@@ -53,8 +60,10 @@ class Voxels:
                     prefab["layers"][layer_index][row_index].append(None)
                     #prefab["layers"][layer_index][row_index][block_index] = self.get_value_at(layer_index, row_index, block_index)
                     val = self.get_value_at(layer_index, row_index, block_index)
-                    if val > 0:
+                    if val > 8:
                         val = 98657 # 61 81 01 00 = wood block from test3.tts
+                    else:
+                        val = 0
                     prefab["layers"][layer_index][row_index][block_index] = val
         encode(prefab, filename)
 
@@ -72,7 +81,7 @@ class Voxels:
                 self.set_value_with_image_coords(pixel_index, row_index, pixel[0])
                 # print('pixel at {}, {}: {}'.format(pixel_index, row_index, pixel))
 
-    def as_training_image(self):
+    def as_training_image(self, block_map):
         sqr_height = math.sqrt(self.height)
         grid_width = math.ceil(sqr_height)
         grid_depth = math.floor(sqr_height)
@@ -83,7 +92,7 @@ class Voxels:
         print("img_w: {}, img_h: {}".format(img_w, img_h))
         training_image = Image.fromarray(img_data)
         for i in range(self.height):
-            cross_section = self.get_cross_section(i)
+            cross_section = self.get_cross_section(i, block_map)
             x = i % grid_width * self.width
             y = math.ceil(i / grid_width) * self.height
             sub_image = Image.fromarray(cross_section)
@@ -92,6 +101,6 @@ class Voxels:
 
 
 if __name__ == '__main__':
-    v = Voxels("prefab1", (7,16,7), [])
+    v = Voxels("prefab1", (16,16,16), [])
     v.from_training_image('generated_prefab_100.png')
-    v.to_tts_file('output\\aifab_02.tts')
+    v.to_tts_file('prefabs\\all\\aifab_03.tts')
