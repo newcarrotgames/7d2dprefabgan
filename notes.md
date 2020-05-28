@@ -422,3 +422,8 @@ Block value from single block prefab:
 
 1100001100000010000000100000000
  098765432109876543210987654321
+ 
+Links I want to remember:
+
+https://nanonets.com/blog/stylegan-got/
+https://www.mdpi.com/2227-7080/7/4/82/htm
