@@ -71,7 +71,7 @@ def apinim(name):
     rootdir = conf.get("gamePrefabsFolder")
     filename = os.path.join(rootdir, "{}.blocks.nim".format(name))
     block_map = {}
-    if os.path.exist(filename):
+    if os.path.exists(filename):
         block_map = read_nim(filename)
     return json.dumps(block_map)
 

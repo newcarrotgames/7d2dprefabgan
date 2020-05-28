@@ -88,7 +88,7 @@ def read_nim_headers():
 structural_phrases = ['wood', 'concrete']
 
 def is_structural_block(block_id, block_type_map):
-    block_type = block_type_map[block_id]
+    block_type = block_type_map[math.floor(block_id)]
     for phrase in structural_phrases:
         if phrase in block_type.lower():
             return True

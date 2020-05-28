@@ -8,3 +8,4 @@ testdata/
 *.txt
 *.csv
 *.ini
+datasets/

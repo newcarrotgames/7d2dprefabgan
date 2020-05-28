@@ -189,7 +189,15 @@
             console.error(e);
         });
 
-        $('regen-button')
+        $('regen-button').addEventListener('click', (e) => {
+            e.target.disabled = true;
+            $("loading-spinner").style.display = 'block';
+            get('/api/regen').then(() => {
+                e.target.disabled = false;
+                $("loading-spinner").style.display = 'none';
+                showPrefab($('tts-select').value);
+            });
+        })
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // utilities
@@ -244,6 +252,22 @@
             <label for="slider-z">Z</label>
             <input type="range" id="slider-z" min="8" max="64">
             <input type="text" id="slider-z-value" class="slider-value" />
+        </div>
+    </div>
+    <div id="loading-spinner">
+        <div class="lds-spinner">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
         </div>
     </div>
 </body>
