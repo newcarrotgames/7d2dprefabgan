@@ -2,6 +2,8 @@
 ## **Please note**: This is a work in progress. You're welcome to clone anything here, just don't expect it to work :).
 This outline seeks to design a process for using GANs to procedurally create logical groups of 3D Voxel data that mimic existing POI structures. The process described in this document only serves as a proof of concept to explore the generation of voxel based content using machine learning. The adversarial network used in this example may not understand that the 2D data it is presented represents a 3D structure, but hopefully the pipeline created here can be reused by a different system specifically created to work with 3D data.
 
+Track the progress of this project here: http://newcarrots.games/
+
 GAN code is here: 
 
 - [Deep Convolutional Generative Adversarial Network](https://www.tensorflow.org/tutorials/generative/dcgan)
